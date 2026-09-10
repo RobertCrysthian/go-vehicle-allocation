@@ -1,2 +1,4 @@
 - Criar arquivo de módulo: go mod init module-name
 - Instalar bibliotecas: go get -u package-name
+- Instalar todas as dependências: go mod tidy
+- Iniciar projeto: go run main.go
