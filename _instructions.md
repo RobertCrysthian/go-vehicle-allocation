@@ -1,0 +1,2 @@
+- Criar arquivo de módulo: go mod init module-name
+- Instalar bibliotecas: go get -u package-name
