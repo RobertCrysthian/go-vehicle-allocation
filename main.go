@@ -21,13 +21,14 @@ func main() {
 
 	router := mux.NewRouter()
 
-	// taskHandler := handlers.NewTaskHandler(dbConnection)
+	statesHandler := handlers.NewStatesHandler(dbConnection)
 	userHandler := handlers.NewUsersHandler(dbConnection)
 	router.HandleFunc("/users/create", userHandler.CreateUser).Methods("POST")
 
 	vehiclesHandler := handlers.NewVehiclesHandler(dbConnection)
 	router.HandleFunc("/vehicles/create", vehiclesHandler.CreateVehicle).Methods("POST")
-
+	router.HandleFunc("/states", statesHandler.PopulateStates).Methods("POST")
+	router.HandleFunc("/states", statesHandler.FindStates).Methods("GET")
 
 	defer dbConnection.Close()
 

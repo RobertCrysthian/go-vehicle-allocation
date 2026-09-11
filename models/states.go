@@ -12,3 +12,9 @@ type ListStateDto struct {
 	StateAbbreviation string `json:"stateAbbreviation"`
 	IbgeId            int    `json:"ibgeId"`
 }
+
+type IbgeStateEntity struct {
+	ID                int    `json:"id"`
+	Name              string `json:"nome"`
+	StateAbbreviation string `json:"sigla"`
+}
