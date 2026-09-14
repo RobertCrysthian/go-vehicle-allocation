@@ -1,16 +1,15 @@
 package models
 
 type CreateStateDto struct {
+	Id                int    `json:"id" validate:"required,number"`
 	Name              string `json:"name" validate:"required"`
 	StateAbbreviation string `json:"stateAbbreviation" validate:"required"`
-	IbgeId            int    `json:"ibgeId" validate:"required,number"`
 }
 
 type ListStateDto struct {
-	ID                string `json:"id"`
+	ID                int    `json:"id"`
 	Name              string `json:"name"`
 	StateAbbreviation string `json:"stateAbbreviation"`
-	IbgeId            int    `json:"ibgeId"`
 }
 
 type IbgeStateEntity struct {

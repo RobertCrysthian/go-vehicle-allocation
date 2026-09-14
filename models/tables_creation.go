@@ -3,20 +3,18 @@ package models
 const CreateTablesSQL = `
 
 CREATE TABLE IF NOT EXISTS states (
-	id INTEGER GENERATED ALWAYS AS IDENTITY,
+	id INTEGER NOT NULL,
 	name TEXT NOT NULL,
 	state_abbreviation TEXT NOT NULL,
-	ibge_id INTEGER NOT NULL,
-	CONSTRAINT pk_states PRIMARY KEY (id),
-	CONSTRAINT uq_states_ibge_id UNIQUE (ibge_id)
+	CONSTRAINT pk_states PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS cities (
-	id INTEGER GENERATED ALWAYS AS IDENTITY,
+	id INTEGER NOT NULL,
 	name TEXT NOT NULL,
-	ibge_id INTEGER NOT NULL,
+	state_id INTEGER NOT NULL,
 	CONSTRAINT pk_cities PRIMARY KEY (id),
-	CONSTRAINT uq_cities_ibge_id UNIQUE (ibge_id)
+	CONSTRAINT fk_cities_state_id FOREIGN KEY (state_id) REFERENCES states (id)
 );
 
 CREATE TABLE IF NOT EXISTS users (
