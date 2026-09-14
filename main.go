@@ -7,17 +7,16 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/robertcrysthian/backend-go/config"
 	"github.com/robertcrysthian/backend-go/handlers"
-	"github.com/robertcrysthian/backend-go/models"
 	"github.com/robertcrysthian/backend-go/seeders"
 )
 
 func main() {
 	dbConnection := config.SetupDB()
 
-	_, err := dbConnection.Exec(models.CreateTablesSQL);
+	_, err := dbConnection.Exec(seeders.CreateTablesSQL);
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Ocorreu um erro ao criar as tabelas" + err.Error())
 	}
 
 	router := mux.NewRouter()
