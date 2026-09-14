@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
 	seats_amount INTEGER NOT NULL,
 	has_air_conditioning BOOLEAN NOT NULL DEFAULT FALSE,
 	pickup_location_id INTEGER NOT NULL,
+	cost_per_day NUMERIC(10,2) NOT NULL,
 	CONSTRAINT pk_vehicles PRIMARY KEY (id),
 	CONSTRAINT uq_vehicles_chassi UNIQUE (chassi),
 	CONSTRAINT fk_vehicles_pickup_location_id FOREIGN KEY (pickup_location_id) REFERENCES pickup_location (id)
