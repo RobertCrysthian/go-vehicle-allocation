@@ -38,16 +38,16 @@ CREATE TABLE IF NOT EXISTS sessions (
 	CONSTRAINT fk_sessions_user_id FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE TABLE IF NOT EXISTS pickup_location (
+CREATE TABLE IF NOT EXISTS pickup_locations (
 	id INTEGER GENERATED ALWAYS AS IDENTITY,
 	city_id INTEGER NOT NULL,
 	state_id INTEGER NOT NULL,
 	district TEXT NOT NULL,
 	street TEXT NOT NULL,
 	building_number TEXT NOT NULL,
-	CONSTRAINT pk_pickup_location PRIMARY KEY (id),
-	CONSTRAINT fk_pickup_location_city_id FOREIGN KEY (city_id) REFERENCES cities (id),
-	CONSTRAINT fk_pickup_location_state_id FOREIGN KEY (state_id) REFERENCES states (id)
+	CONSTRAINT pk_pickup_locations PRIMARY KEY (id),
+	CONSTRAINT fk_pickup_locations_city_id FOREIGN KEY (city_id) REFERENCES cities (id),
+	CONSTRAINT fk_pickup_locations_state_id FOREIGN KEY (state_id) REFERENCES states (id)
 );
 
 CREATE TABLE IF NOT EXISTS vehicles (
