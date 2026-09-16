@@ -41,13 +41,11 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE TABLE IF NOT EXISTS pickup_locations (
 	id INTEGER GENERATED ALWAYS AS IDENTITY,
 	city_id INTEGER NOT NULL,
-	state_id INTEGER NOT NULL,
 	district TEXT NOT NULL,
 	street TEXT NOT NULL,
 	building_number TEXT NOT NULL,
 	CONSTRAINT pk_pickup_locations PRIMARY KEY (id),
-	CONSTRAINT fk_pickup_locations_city_id FOREIGN KEY (city_id) REFERENCES cities (id),
-	CONSTRAINT fk_pickup_locations_state_id FOREIGN KEY (state_id) REFERENCES states (id)
+	CONSTRAINT fk_pickup_locations_city_id FOREIGN KEY (city_id) REFERENCES cities (id)
 );
 
 CREATE TABLE IF NOT EXISTS vehicles (
@@ -64,7 +62,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
 	cost_per_day NUMERIC(10,2) NOT NULL,
 	CONSTRAINT pk_vehicles PRIMARY KEY (id),
 	CONSTRAINT uq_vehicles_chassi UNIQUE (chassi),
-	CONSTRAINT fk_vehicles_pickup_location_id FOREIGN KEY (pickup_location_id) REFERENCES pickup_location (id)
+	CONSTRAINT fk_vehicles_pickup_location_id FOREIGN KEY (pickup_location_id) REFERENCES pickup_locations (id)
 );
 
 CREATE TABLE IF NOT EXISTS allocations (
