@@ -44,8 +44,8 @@ func (VehiclesHandler *VehiclesHandler) CreateVehicle(writer http.ResponseWriter
 	}
 
 	const createVehicleQuery = `
-		INSERT INTO vehicles (brand, model, chassi, year, color, doors_amount, seats_amount, has_air_conditioning, pickup_location_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO vehicles (brand, model, chassi, year, color, doors_amount, seats_amount, has_air_conditioning, pickup_location_id, cost_per_day)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
 
 	_, err = VehiclesHandler.DB.Exec(
@@ -59,6 +59,7 @@ func (VehiclesHandler *VehiclesHandler) CreateVehicle(writer http.ResponseWriter
 		vehicle.SeatsAmount,
 		vehicle.HasAirConditioning,
 		vehicle.PickupLocationId,
+		vehicle.CostPerDay,
 	)
 	if err != nil {
 		utils.InternalServerError(writer, "Erro na query de inserir veículo "+err.Error())
@@ -68,4 +69,57 @@ func (VehiclesHandler *VehiclesHandler) CreateVehicle(writer http.ResponseWriter
 	response := map[string]string{"response": "Veículo cadastrado com sucesso!"}
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(response)
+}
+
+func (VehiclesHandler *VehiclesHandler) FindAllVehicles (writer http.ResponseWriter, request *http.Request) {
+	const findAllVehiclesQuery = `
+		SELECT 
+			id,
+			brand,
+			model,
+			chassi,
+			year,
+			color,
+			doors_amount,
+			seats_amount,
+			has_air_conditioning,
+			cost_per_day
+		FROM vehicles
+	`
+	rows, err := VehiclesHandler.DB.Query(findAllVehiclesQuery)
+	if err != nil {
+		utils.InternalServerError(writer, "Erro na query de buscar veículos " +err.Error())
+		return
+	}
+	
+	var vehicles = make([]models.ListVehiclesDto, 0)
+	for rows.Next() {
+		var vehicle models.ListVehiclesDto
+		err := rows.Scan(
+			&vehicle.ID, 
+			&vehicle.Brand, 
+			&vehicle.Model, 
+			&vehicle.Chassi, 
+			&vehicle.Year,
+			&vehicle.Color,
+			&vehicle.DoorsAmount,
+			&vehicle.SeatsAmount,
+			&vehicle.HasAirConditioning,
+			&vehicle.CostPerDay,
+		)
+
+		if err != nil {
+			utils.InternalServerError(writer, "Ocorreu um erro ao escanear o veículo " + err.Error())
+			return
+		}
+		vehicles = append(vehicles, vehicle)
+	}
+	if err := rows.Err(); err != nil {
+		utils.InternalServerError(writer, err.Error())
+   		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(vehicles)
+
 }

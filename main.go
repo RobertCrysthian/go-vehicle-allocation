@@ -36,7 +36,9 @@ func main() {
 	router.HandleFunc("/users/create", userHandler.CreateUser).Methods("POST")
 
 	vehiclesHandler := handlers.NewVehiclesHandler(dbConnection)
-	router.HandleFunc("/vehicles/create", vehiclesHandler.CreateVehicle).Methods("POST")
+	router.HandleFunc("/vehicles", vehiclesHandler.CreateVehicle).Methods("POST")
+	router.HandleFunc("/vehicles", vehiclesHandler.FindAllVehicles).Methods("GET")
+
 	router.HandleFunc("/states", statesHandler.FindStates).Methods("GET")
 
 	router.HandleFunc("/pickup-locations", pickupLocationsHandler.CreatePickupLocation).Methods("POST")
