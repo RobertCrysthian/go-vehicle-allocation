@@ -7,9 +7,16 @@ type CreateCityDto struct {
 }
 
 type ListCityDto struct {
-	ID      int    `json:"id"`
-	Name    string `json:"name"`
-	StateId int    `json:"stateId"`
+	ID                int    `json:"id"`
+	Name              string `json:"name"`
+	StateAbbreviation string `json:"StateAbbreviation"`
+}
+
+type ListCityWithPaginationDto struct {
+	Page    int           `json:"page"`
+	Results int           `json:"results"`
+	Total   int           `json:"total"`
+	Cities  []ListCityDto `json:"cities"`
 }
 
 type ibgeUFEntity struct {

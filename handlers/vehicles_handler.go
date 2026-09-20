@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/robertcrysthian/backend-go/models"
 	"github.com/robertcrysthian/backend-go/utils"
 )
@@ -122,4 +124,145 @@ func (VehiclesHandler *VehiclesHandler) FindAllVehicles (writer http.ResponseWri
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(vehicles)
 
+}
+
+func (VehiclesHandler *VehiclesHandler) FindVehicleById (writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequestError(writer, "Identificador do veículo não foi encontrado ou não é um número válido")
+		return
+	}
+
+	const findVehicleQuery = `
+		SELECT 
+			id,
+			brand,
+			model,
+			chassi,
+			year,
+			color,
+			doors_amount,
+			seats_amount,
+			has_air_conditioning,
+			cost_per_day
+		FROM vehicles
+		WHERE id = $1
+	`
+	var vehicle models.ListVehiclesDto
+
+	err = VehiclesHandler.DB.QueryRow(findVehicleQuery, id).Scan(
+			&vehicle.ID, 
+			&vehicle.Brand, 
+			&vehicle.Model, 
+			&vehicle.Chassi, 
+			&vehicle.Year,
+			&vehicle.Color,
+			&vehicle.DoorsAmount,
+			&vehicle.SeatsAmount,
+			&vehicle.HasAirConditioning,
+			&vehicle.CostPerDay,
+		)
+	
+	if err != nil {
+		if err == sql.ErrNoRows {
+			utils.BadRequestError(writer, "Nenhum veículo encontrado com esse id")
+			return
+		}
+		utils.InternalServerError(writer, "Ocorreu um erro ao escanear o veículo: " + err.Error())
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(vehicle)
+}
+
+func (VehiclesHandler *VehiclesHandler) UpdateVehicle (writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequestError(writer, "Identificador do veículo não foi encontrado ou não é um número válido")
+		return
+	}
+
+	var vehicle models.UpdateVehicleDto
+	err = json.NewDecoder(request.Body).Decode(&vehicle)
+	if err != nil {
+		http.Error(writer, "A resposta deve ser um JSON válido " + err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	query := `
+		UPDATE vehicles set 
+			brand = $1, 
+			model = $2, 
+			chassi = $3,
+			year = $4,
+			color = $5,
+			doors_amount = $6,
+			seats_amount = $7,
+			has_air_conditioning = $8,
+			pickup_location_id = $9,
+			cost_per_day = $10
+		WHERE id = $11`
+
+	result, err := VehiclesHandler.DB.Exec(query, 
+		vehicle.Brand, 
+		vehicle.Model, 
+		vehicle.Chassi,
+		vehicle.Year,
+		vehicle.Color,
+		vehicle.DoorsAmount,
+		vehicle.SeatsAmount,
+		vehicle.HasAirConditioning,
+		vehicle.PickupLocationId,
+		vehicle.CostPerDay, 
+		id,
+	)
+
+	if err != nil {
+		utils.InternalServerError(writer, err.Error())
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		utils.InternalServerError(writer, err.Error())
+		return
+	}
+	if rowsAffected == 0 {
+		http.Error(writer, "Nenhum veículo encontrado com esse id", http.StatusNotFound)
+		return
+	}
+
+	response := map[string]string{"response": "Veículo editado com sucesso!"}
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(response)
+}
+
+func (VehiclesHandler *VehiclesHandler) DeleteVehicle (writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequestError(writer, "Identificador do veículo não foi encontrado ou não é um número válido")
+		return
+	}
+
+	query := `DELETE FROM vehicles WHERE id = $1`
+	result , err := VehiclesHandler.DB.Exec(query, id)
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	if rowsAffected == 0 {
+		http.Error(writer, "Nenhum veículo encontrado com esse id", http.StatusNotFound)
+		return
+	}
+
+	response := map[string]string{"response": "Veículo excluido com sucesso!"}
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(response)
 }
