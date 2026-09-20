@@ -7,6 +7,11 @@ type CreatePickupLocationDto struct {
 	BuildingNumber int    `json:"buildingNumber" validate:"required,number"`
 }
 
+type UpdatePickupLocationDto struct {
+	ID int `json:"id" validate:"required,number"`
+	CreatePickupLocationDto
+}
+
 type ListPickupLocationDto struct {
 	ID             int    `json:"id"`
 	District       string `json:"district"`

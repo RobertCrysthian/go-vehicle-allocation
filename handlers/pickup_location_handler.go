@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/robertcrysthian/backend-go/models"
 	"github.com/robertcrysthian/backend-go/utils"
 )
@@ -105,4 +106,123 @@ func (PickupLocationHandler *PickupLocationHandler) FindAllPickupLocations (writ
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(pickupLocations)
 
+}
+
+func (PickupLocationHandler *PickupLocationHandler) FindPickupLocationById (writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequestError(writer, "Identificador do local de coleta não foi encontrado ou não é um número válido")
+		return
+	}
+
+	var pickupLocation models.ListPickupLocationDto
+	const findPickupLocationQuery = `
+		SELECT
+			pl.id,
+			pl.district,
+			pl.street,
+			pl.building_number,
+			c.name as city_name,
+			s.name as state_name
+		FROM pickup_locations pl
+		JOIN cities c ON c.id = pl.city_id 
+		JOIN states s ON s.id = c.state_id
+		WHERE pl.id = $1
+	`
+
+	err = PickupLocationHandler.DB.QueryRow(findPickupLocationQuery, id).Scan(
+		&pickupLocation.ID, 
+		&pickupLocation.District,
+		&pickupLocation.Street,
+		&pickupLocation.BuildingNumber,
+		&pickupLocation.CityName,
+		&pickupLocation.StateName,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			utils.BadRequestError(writer, "Nenhum ponto de coleta encontrado com esse id")
+			return
+		}
+		utils.InternalServerError(writer, "Ocorreu um erro ao escanear o ponto de coleta: " + err.Error())
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(pickupLocation)
+
+}
+
+func (PickupLocationHandler *PickupLocationHandler) UpdatePickupLocation (writer http.ResponseWriter, request *http.Request) {
+	var pickupLocation models.UpdatePickupLocationDto
+	err := utils.ValidateRequest(request, &pickupLocation)
+	if err != nil {
+		utils.BadRequestError(writer, err.Error())
+		return
+	}
+
+	const query = `
+		UPDATE pickup_locations SET
+			city_id = $1,
+			district = $2,
+			street = $3, 
+			building_number = $4
+		WHERE id = $5
+	`
+
+	result, err := PickupLocationHandler.DB.Exec(
+		query, 
+		pickupLocation.CityId, 
+		pickupLocation.District, 
+		pickupLocation.Street, 
+		pickupLocation.BuildingNumber, 
+		pickupLocation.ID,
+	)
+
+	if err != nil {
+		utils.InternalServerError(writer, "Ocorreu um erro ao realizar a query " + err.Error())
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		utils.InternalServerError(writer, err.Error())
+		return
+	}
+	if rowsAffected == 0 {
+		http.Error(writer, "Nenhum ponto de coleta encontrado com esse id", http.StatusNotFound)
+		return
+	}
+
+	response := map[string]string{"response": "Ponto de coleta editado com sucesso!"}
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(response)
+}
+
+func (PickupLocationHandler *PickupLocationHandler) DeletePickupLocation (writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.BadRequestError(writer, "Identificador do local de coleta não foi encontrado ou não é um número válido")
+		return
+	}
+
+	query := `DELETE FROM pickup_locations WHERE id = $1`
+	result , err := PickupLocationHandler.DB.Exec(query, id)
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	if rowsAffected == 0 {
+		http.Error(writer, "Nenhum local de coleta encontrado com esse id", http.StatusNotFound)
+		return
+	}
+
+	response := map[string]string{"response": "Local de coleta excluido com sucesso!"}
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(response)
 }
