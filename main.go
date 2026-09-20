@@ -34,13 +34,15 @@ func main() {
 	userHandler := handlers.NewUsersHandler(dbConnection)
 	pickupLocationsHandler := handlers.NewPickupLocationHandler(dbConnection)
 	citiesHandler := handlers.NewCitiesHandler(dbConnection)
+	vehiclesHandler := handlers.NewVehiclesHandler(dbConnection)
+	allocationsHandler := handlers.NewAllocationsHandler(dbConnection)
 
 	router.HandleFunc("/users/create", userHandler.CreateUser).Methods("POST")
 
-	vehiclesHandler := handlers.NewVehiclesHandler(dbConnection)
 	router.HandleFunc("/vehicles", vehiclesHandler.CreateVehicle).Methods("POST")
 	router.HandleFunc("/vehicles", vehiclesHandler.FindAllVehicles).Methods("GET")
 	router.HandleFunc("/vehicles/{id}", vehiclesHandler.FindVehicleById).Methods("GET")
+	router.HandleFunc("/vehicles-availables", vehiclesHandler.FindVehicleByDateInterval).Methods("GET")
 	router.HandleFunc("/vehicles/{id}", vehiclesHandler.UpdateVehicle).Methods("PUT")
 	router.HandleFunc("/vehicles/{id}", vehiclesHandler.DeleteVehicle).Methods("DELETE")
 
@@ -53,6 +55,7 @@ func main() {
 	router.HandleFunc("/pickup-locations", pickupLocationsHandler.UpdatePickupLocation ).Methods("PUT")
 	router.HandleFunc("/pickup-locations/{id}", pickupLocationsHandler.DeletePickupLocation ).Methods("DELETE")
 
+	router.HandleFunc("/allocations", allocationsHandler.CreateAllocation).Methods("POST")
 
 	defer dbConnection.Close()
 

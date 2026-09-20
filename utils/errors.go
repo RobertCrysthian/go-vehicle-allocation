@@ -13,3 +13,7 @@ func InternalServerError(writer http.ResponseWriter, message string) {
 func ConflitctError(writer http.ResponseWriter, message string) {
 	http.Error(writer, message, http.StatusConflict)
 }
+
+func NotFoundError(writer http.ResponseWriter, message string) {
+	http.Error(writer, message, http.StatusNotFound)
+}

@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS allocations (
 	vehicle_id INTEGER NOT NULL,
 	pick_up_date TIMESTAMP NOT NULL,
 	devolution_date TIMESTAMP,
-	estimated_evolution_date TIMESTAMP,
+	estimated_devolution_date TIMESTAMP,
 	CONSTRAINT pk_allocations PRIMARY KEY (id),
 	CONSTRAINT fk_allocations_renter_id FOREIGN KEY (renter_id) REFERENCES users (id),
 	CONSTRAINT fk_allocations_vehicle_id FOREIGN KEY (vehicle_id) REFERENCES vehicles (id)

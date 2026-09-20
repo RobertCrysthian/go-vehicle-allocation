@@ -182,6 +182,82 @@ func (VehiclesHandler *VehiclesHandler) FindVehicleById (writer http.ResponseWri
 	json.NewEncoder(writer).Encode(vehicle)
 }
 
+func (VehiclesHandler *VehiclesHandler) FindVehicleByDateInterval (writer http.ResponseWriter, request *http.Request) {
+	initialDate := request.URL.Query().Get("initial-date")
+	if initialDate == "" {
+		utils.BadRequestError(writer, "É necessário informar a data inicial")
+		return 
+	}
+
+	finalDate := request.URL.Query().Get("final-date")
+	if finalDate == "" {
+		utils.BadRequestError(writer, "É necessário informar a data final")
+		return 
+	}
+
+	const query = `
+	SELECT
+		v.id,
+		v.brand,
+		v.model,
+		v.chassi,
+		v.year,
+		v.color,
+		v.doors_amount,
+		v.seats_amount,
+		v.has_air_conditioning,
+		v.cost_per_day,
+		v.late_return_fee
+	FROM vehicles v
+	LEFT JOIN allocations a ON a.vehicle_id = v.id 
+	WHERE NOT EXISTS (
+		SELECT 1
+		FROM allocations a
+		WHERE a.vehicle_id = v.id
+		AND a.pick_up_date < $2
+		AND COALESCE(a.devolution_date, a.estimated_devolution_date) > $1
+	);
+	`
+
+	rows, err := VehiclesHandler.DB.Query(query, initialDate, finalDate)
+	if err != nil {
+		utils.InternalServerError(writer, "Erro na query de buscar veículos " +err.Error())
+		return
+	}
+
+	var vehicles = make([]models.ListVehiclesDto, 0)
+	for rows.Next() {
+		var vehicle models.ListVehiclesDto
+		err := rows.Scan(
+			&vehicle.ID, 
+			&vehicle.Brand, 
+			&vehicle.Model, 
+			&vehicle.Chassi, 
+			&vehicle.Year,
+			&vehicle.Color,
+			&vehicle.DoorsAmount,
+			&vehicle.SeatsAmount,
+			&vehicle.HasAirConditioning,
+			&vehicle.CostPerDay,
+			&vehicle.LateReturnFee,
+		)
+
+		if err != nil {
+			utils.InternalServerError(writer, "Ocorreu um erro ao escanear o veículo " + err.Error())
+			return
+		}
+		vehicles = append(vehicles, vehicle)
+	}
+	if err := rows.Err(); err != nil {
+		utils.InternalServerError(writer, err.Error())
+   		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(vehicles)
+
+}
+
 func (VehiclesHandler *VehiclesHandler) UpdateVehicle (writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
