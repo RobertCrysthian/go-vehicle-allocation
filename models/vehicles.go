@@ -10,6 +10,7 @@ type CreateVehicleDto struct {
 	SeatsAmount        int     `json:"seatsAmount" validate:"required,number"`
 	HasAirConditioning bool    `json:"hasAirConditioning"`
 	PickupLocationId   int     `json:"pickupLocationId" validate:"required,number"`
+	LateReturnFee      float32 `json:"lateReturnFee" validate:"required,number"`
 	CostPerDay         float32 `json:"costPerDay" validate:"required,number"`
 }
 
@@ -23,6 +24,7 @@ type ListVehiclesDto struct {
 	DoorsAmount        int     `json:"doorsAmount"`
 	SeatsAmount        int     `json:"seatsAmount"`
 	HasAirConditioning bool    `json:"hasAirConditioning"`
+	LateReturnFee      float32 `json:"lateReturnFee"`
 	CostPerDay         float32 `json:"costPerDay"`
 }
 

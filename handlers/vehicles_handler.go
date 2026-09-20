@@ -46,8 +46,8 @@ func (VehiclesHandler *VehiclesHandler) CreateVehicle(writer http.ResponseWriter
 	}
 
 	const createVehicleQuery = `
-		INSERT INTO vehicles (brand, model, chassi, year, color, doors_amount, seats_amount, has_air_conditioning, pickup_location_id, cost_per_day)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		INSERT INTO vehicles (brand, model, chassi, year, color, doors_amount, seats_amount, has_air_conditioning, pickup_location_id, cost_per_day, late_return_fee)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
 
 	_, err = VehiclesHandler.DB.Exec(
@@ -62,6 +62,7 @@ func (VehiclesHandler *VehiclesHandler) CreateVehicle(writer http.ResponseWriter
 		vehicle.HasAirConditioning,
 		vehicle.PickupLocationId,
 		vehicle.CostPerDay,
+		vehicle.LateReturnFee,
 	)
 	if err != nil {
 		utils.InternalServerError(writer, "Erro na query de inserir veículo "+err.Error())
@@ -85,7 +86,8 @@ func (VehiclesHandler *VehiclesHandler) FindAllVehicles (writer http.ResponseWri
 			doors_amount,
 			seats_amount,
 			has_air_conditioning,
-			cost_per_day
+			cost_per_day,
+			late_return_fee
 		FROM vehicles
 	`
 	rows, err := VehiclesHandler.DB.Query(findAllVehiclesQuery)
@@ -108,6 +110,7 @@ func (VehiclesHandler *VehiclesHandler) FindAllVehicles (writer http.ResponseWri
 			&vehicle.SeatsAmount,
 			&vehicle.HasAirConditioning,
 			&vehicle.CostPerDay,
+			&vehicle.LateReturnFee,
 		)
 
 		if err != nil {
@@ -145,7 +148,8 @@ func (VehiclesHandler *VehiclesHandler) FindVehicleById (writer http.ResponseWri
 			doors_amount,
 			seats_amount,
 			has_air_conditioning,
-			cost_per_day
+			cost_per_day,
+			late_return_fee
 		FROM vehicles
 		WHERE id = $1
 	`
@@ -162,6 +166,7 @@ func (VehiclesHandler *VehiclesHandler) FindVehicleById (writer http.ResponseWri
 			&vehicle.SeatsAmount,
 			&vehicle.HasAirConditioning,
 			&vehicle.CostPerDay,
+			&vehicle.LateReturnFee,
 		)
 	
 	if err != nil {
@@ -203,8 +208,9 @@ func (VehiclesHandler *VehiclesHandler) UpdateVehicle (writer http.ResponseWrite
 			seats_amount = $7,
 			has_air_conditioning = $8,
 			pickup_location_id = $9,
-			cost_per_day = $10
-		WHERE id = $11`
+			cost_per_day = $10,
+			late_return_fee = $11
+		WHERE id = $12`
 
 	result, err := VehiclesHandler.DB.Exec(query, 
 		vehicle.Brand, 
@@ -216,7 +222,8 @@ func (VehiclesHandler *VehiclesHandler) UpdateVehicle (writer http.ResponseWrite
 		vehicle.SeatsAmount,
 		vehicle.HasAirConditioning,
 		vehicle.PickupLocationId,
-		vehicle.CostPerDay, 
+		vehicle.CostPerDay,
+		vehicle.LateReturnFee,
 		id,
 	)
 
