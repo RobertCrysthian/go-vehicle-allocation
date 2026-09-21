@@ -56,6 +56,7 @@ func main() {
 	router.HandleFunc("/pickup-locations/{id}", pickupLocationsHandler.DeletePickupLocation ).Methods("DELETE")
 
 	router.HandleFunc("/allocations", allocationsHandler.CreateAllocation).Methods("POST")
+	router.HandleFunc("/allocations", allocationsHandler.FindAllAllocations).Methods("GET")
 
 	defer dbConnection.Close()
 

@@ -60,7 +60,7 @@ func (AllocationsHandler *AllocationsHandler) CreateAllocation(writer http.Respo
 		return
 	}
 
-	isVehicleAvailable, err := verifyIfVehicleIsAvailable(*AllocationsHandler.DB, allocation.PickUpDate, allocation.EstimatedDevolutionDate)
+	isVehicleAvailable, err := verifyIfVehicleIsAvailable(*AllocationsHandler.DB, allocation.PickupDate, allocation.EstimatedDevolutionDate)
 	if err != nil {
 		utils.InternalServerError(writer, "Ocorreu um erro ao validar a data de disponibilidade do veículo " + err.Error())
 	}
@@ -78,7 +78,7 @@ func (AllocationsHandler *AllocationsHandler) CreateAllocation(writer http.Respo
 		creationQuery, 
 		allocation.RenterId,
 		 allocation.VehicleId, 
-		 allocation.PickUpDate, 
+		 allocation.PickupDate, 
 		 allocation.EstimatedDevolutionDate,
 	)
 	if err != nil {
@@ -90,6 +90,60 @@ func (AllocationsHandler *AllocationsHandler) CreateAllocation(writer http.Respo
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(response)
 
+}
+
+func (AllocationsHandler *AllocationsHandler) FindAllAllocations(writer http.ResponseWriter, request *http.Request) {
+	const query = `
+		SELECT
+			a.id,
+			a.pick_up_date,
+			a.devolution_date,
+			a.estimated_devolution_date,
+			v.model,
+			v.brand,
+			v.cost_per_day * (COALESCE(a.devolution_date::date, a.estimated_devolution_date::date) - a.pick_up_date::date) as "allocation_cost",
+			CASE 
+				WHEN a.devolution_date IS NULL THEN 0
+				ELSE GREATEST(a.devolution_date::date - a.estimated_devolution_date::date, 0) * v.late_return_fee
+			END as late_return_fee_cost
+		FROM allocations a
+		JOIN users u ON u.id = a.renter_id 
+		JOIN vehicles v ON v.id = a.vehicle_id
+	`
+	rows, err := AllocationsHandler.DB.Query(query)
+	if err != nil {
+		utils.InternalServerError(writer, "Erro na query de buscar alocações " +err.Error())
+		return
+	}
+	var allocations = make([]models.ListAllocationDto, 0)
+
+	for rows.Next() {
+		var allocation models.ListAllocationDto
+		err := rows.Scan(
+			&allocation.ID, 
+			&allocation.PickupDate, 
+			&allocation.DevolutionDate, 
+			&allocation.EstimatedDevolutionDate, 
+			&allocation.VehicleModel,
+			&allocation.VehicleBrand,
+			&allocation.AllocationCost,
+			&allocation.LateReturnFeeCost,
+		)
+
+		if err != nil {
+			utils.InternalServerError(writer, "Ocorreu um erro ao escanear a alocação " + err.Error())
+			return
+		}
+		allocations = append(allocations, allocation)
+	}
+
+		if err := rows.Err(); err != nil {
+		utils.InternalServerError(writer, err.Error())
+   		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(allocations)
 }
 
 func verifyIfVehicleIsAvailable(db sql.DB, initialDate string, finalDate string) (bool, error) {
