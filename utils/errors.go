@@ -17,3 +17,7 @@ func ConflitctError(writer http.ResponseWriter, message string) {
 func NotFoundError(writer http.ResponseWriter, message string) {
 	http.Error(writer, message, http.StatusNotFound)
 }
+
+func UnauthorizedError(writer http.ResponseWriter, message string) {
+	http.Error(writer, message, http.StatusUnauthorized)
+}

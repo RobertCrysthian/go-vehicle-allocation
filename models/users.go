@@ -7,9 +7,15 @@ type CreateUserDto struct {
 	CPF      string `json:"cpf" validate:"len=11,number"`
 }
 
-// type UpdateUser struct {
-// 	CreateUser
-// }
+type LoginDto struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type UserWithHashDto struct {
+	ListUsersDto
+	Password string `json:"password"`
+}
 
 type ListUsersDto struct {
 	ID    int    `json:"id"`

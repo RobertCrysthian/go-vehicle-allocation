@@ -64,3 +64,33 @@ func (UsersHandler *UsersHandler) CreateUser (writer http.ResponseWriter, reques
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(response)
 }
+
+//TODO - Precisa de uma autenticação REAL no projeto. Estarei trabalhando nisso
+func (UsersHandler *UsersHandler) Login (writer http.ResponseWriter, request *http.Request) {
+	var credentials models.LoginDto
+	err := utils.ValidateRequest(request, &credentials)
+	if err != nil {
+		utils.BadRequestError(writer, err.Error())
+		return
+	}
+
+	const query = `SELECT * from users where email = $1`
+	var user models.UserWithHashDto
+	err = UsersHandler.DB.QueryRow(query, credentials.Email).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CPF)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			utils.BadRequestError(writer, "Usuário ou senha inválidos")
+			return
+		}
+		utils.InternalServerError(writer, "Ocorreu um erro ao escanear o veículo: " + err.Error())
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password)); err != nil {
+		utils.UnauthorizedError(writer, "Usuário ou senha inválidos")
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(user.ListUsersDto)
+}

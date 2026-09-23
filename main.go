@@ -38,6 +38,7 @@ func main() {
 	allocationsHandler := handlers.NewAllocationsHandler(dbConnection)
 
 	router.HandleFunc("/users/create", userHandler.CreateUser).Methods("POST")
+	router.HandleFunc("/users/login", userHandler.Login).Methods("GET")
 
 	router.HandleFunc("/vehicles", vehiclesHandler.CreateVehicle).Methods("POST")
 	router.HandleFunc("/vehicles", vehiclesHandler.FindAllVehicles).Methods("GET")
