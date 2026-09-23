@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/robertcrysthian/backend-go/config"
@@ -60,6 +61,7 @@ func main() {
 	router.HandleFunc("/allocations", allocationsHandler.FindAllAllocations).Methods("GET")
 
 	defer dbConnection.Close()
-
-	log.Fatal(http.ListenAndServe(":8081", router))
+	
+	backendPort := os.Getenv("BACKEND_PORT")
+	log.Fatal(http.ListenAndServe(":"+backendPort, router))
 }
