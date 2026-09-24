@@ -38,6 +38,8 @@ func main() {
 	vehiclesHandler := handlers.NewVehiclesHandler(dbConnection)
 	allocationsHandler := handlers.NewAllocationsHandler(dbConnection)
 
+	router.HandleFunc("/about", handlers.About).Methods("GET")
+
 	router.HandleFunc("/users/create", userHandler.CreateUser).Methods("POST")
 	router.HandleFunc("/users/login", userHandler.Login).Methods("GET")
 
